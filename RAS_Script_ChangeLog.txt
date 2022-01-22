@@ -12,6 +12,51 @@
 
 #Version 1.0 released to the community on 5-August-2020
 #
+
+#Version 2.10 25-Apr-2021
+#	Fixed wrong variables used to determine User Profile technology
+#	For RD Session Hosts properties:
+#		Renamed the Properties tab to General
+#		Renamed Agent Settings to Agent settings
+#		Renamed User Profile to User profile
+#		Renamed Desktop Access to Desktop access
+#		Renamed RDP Printer to RDP printer
+#	For RD Session Hosts Groups properties:
+#		Renamed Agent Settings to Agent settings
+#		Renamed Desktop Access to Desktop access
+#		Renamed RDP Printer to RDP printer
+#	For RD Session Hosts Schedule properties:
+#		Renamed the Properties tab to General
+#	For VDI Providers properties:
+#		Renamed Agent Settings to Agent settings
+#		Renamed RDP Printer to RDP printer
+#	For Gateways properties:
+#		Renamed the Properties tab to General
+#	For Certificates properties:
+#		Renamed the Properties tab to General
+#	For Administration, Settings:
+#		Rename Customer Experience Program to Customer experience program
+#		Rename HTTP Proxy settings to HTTP proxy settings
+#	For License:
+#		Rename License Details to License details
+#	For VDI, the following changes were made:
+#		Providers tab, added Direct address
+#		Providers properties, renamed the Properties tab to General
+#		Providers properties, Agent settings:
+#			Removed "Publishing Session Timeout"
+#			Added "Enable drive redirection cache"
+#		Pools tab:
+#			Pools:
+#				Added Last modification by
+#				Added Modified on
+#				Added Created by
+#				Added Created on
+#		Templates tab:
+#			For template properties, removed Status as I was getting the wrong status property
+#			Template properties, renamed the Properties tab to General
+#			Advanced tab, renamed Native Pool to Resource pool
+#	Updated the ReadMe file
+
 #Version 2.00 20-Apr-2021
 #	Added 59 RDS Agent States
 #	Added a message to the error message for the missing RAS module

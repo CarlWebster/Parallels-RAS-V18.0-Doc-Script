@@ -385,9 +385,9 @@
 	text document.
 .NOTES
 	NAME: RAS_Inventory_V2.ps1
-	VERSION: 2.00
+	VERSION: 2.10
 	AUTHOR: Carl Webster
-	LASTEDIT: April 19, 2021
+	LASTEDIT: April 25, 2021
 #>
 
 
@@ -493,6 +493,50 @@ Param(
 
 #Version 1.0 released to the community on 5-August-2020
 #Work on 2.0 started on 20-Sep-2020
+#
+#Version 2.10 25-Apr-2021
+#	Fixed wrong variables used to determine User Profile technology
+#	For RD Session Hosts properties:
+#		Renamed the Properties tab to General
+#		Renamed Agent Settings to Agent settings
+#		Renamed User Profile to User profile
+#		Renamed Desktop Access to Desktop access
+#		Renamed RDP Printer to RDP printer
+#	For RD Session Hosts Groups properties:
+#		Renamed Agent Settings to Agent settings
+#		Renamed Desktop Access to Desktop access
+#		Renamed RDP Printer to RDP printer
+#	For RD Session Hosts Schedule properties:
+#		Renamed the Properties tab to General
+#	For VDI Providers properties:
+#		Renamed Agent Settings to Agent settings
+#		Renamed RDP Printer to RDP printer
+#	For Gateways properties:
+#		Renamed the Properties tab to General
+#	For Certificates properties:
+#		Renamed the Properties tab to General
+#	For Administration, Settings:
+#		Rename Customer Experience Program to Customer experience program
+#		Rename HTTP Proxy settings to HTTP proxy settings
+#	For License:
+#		Rename License Details to License details
+#	For VDI, the following changes were made:
+#		Providers tab, added Direct address
+#		Providers properties, renamed the Properties tab to General
+#		Providers properties, Agent settings:
+#			Removed "Publishing Session Timeout"
+#			Added "Enable drive redirection cache"
+#		Pools tab:
+#			Pools:
+#				Added Last modification by
+#				Added Modified on
+#				Added Created by
+#				Added Created on
+#		Templates tab:
+#			For template properties, removed Status as I was getting the wrong status property
+#			Template properties, renamed the Properties tab to General
+#			Advanced tab, renamed Native Pool to Resource pool
+#	Updated the ReadMe file
 #
 #Version 2.00 20-Apr-2021
 #	Added 59 RDS Agent States
@@ -4142,6 +4186,7 @@ Function GetVDIType
 	
 	Return $VDIType
 }
+
 Function OutputSite
 {
 	Param([object]$Site)
@@ -5121,11 +5166,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Properties"
+				WriteWordLine 4 0 "General"
 			}
 			If($Text)
 			{
-				Line 3 "Properties"
+				Line 3 "General"
 			}
 			If($HTML)
 			{
@@ -5174,7 +5219,7 @@ Function OutputSite
 				$rowdata += @(,( "Description",($Script:htmlsb),$RDSHost.Description,$htmlwhite))
 				$rowdata += @(,( "Direct Address",($Script:htmlsb),$RDSHost.DirectAddress,$htmlwhite))
 
-				$msg = "Properties"
+				$msg = "General"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -5184,11 +5229,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Agent Settings"
+				WriteWordLine 4 0 "Agent settings"
 			}
 			If($Text)
 			{
-				Line 3 "Agent Settings"
+				Line 3 "Agent settings"
 			}
 			If($HTML)
 			{
@@ -5541,21 +5586,21 @@ Function OutputSite
 				$rowdata += @(,( "Allow file transfer command (HTML5 and Chrome clients)",($Script:htmlsb),$RDSAllowFileTransfer,$htmlwhite))
 				$rowdata += @(,( "Enable drive redirection cache",($Script:htmlsb),$RDSEnableDriveRedirectionCache,$htmlwhite))
 
-				$msg = "Agent Settings"
+				$msg = "Agent settings"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
 			}
 
-			#User Profile Disks
+			#User Profile
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "User Profile"
+				WriteWordLine 4 0 "User profile"
 			}
 			If($Text)
 			{
-				Line 3 "User Profile"
+				Line 3 "User profile"
 			}
 			If($HTML)
 			{
@@ -6753,11 +6798,11 @@ Function OutputSite
 				$ScriptInformation.Add(@{Data = "Inherit default settings"; Value = $RDSHost.InheritDefaultUserProfileSettings.ToString(); }) > $Null
 				$ScriptInformation.Add(@{Data = "Technology"; Value = $RDSTechnology; }) > $Null
 				
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					$ScriptInformation.Add(@{Data = "Settings"; Value = ""; }) > $Null
 					$ScriptInformation.Add(@{Data = "     UPD State"; Value = $RDSUPDState; }) > $Null
@@ -6810,7 +6855,7 @@ Function OutputSite
 						$ScriptInformation.Add(@{Data = "     Unable to determine UPD Roaming Mode"; Value = ""; }) > $Null
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					$ScriptInformation.Add(@{Data = "Deployment method"; Value = $FSLogixDeploymentSettingsDeploymentMethod; }) > $Null
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -7005,11 +7050,11 @@ Function OutputSite
 				Line 4 "Inherit default settings`t`t`t`t: " $RDSHost.InheritDefaultUserProfileSettings.ToString()
 				Line 4 "Technology`t`t`t`t`t`t: " $RDSTechnology
 
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					Line 4 "Settings"
 					Line 5 "UPD State`t`t`t`t`t: " $RDSUPDState
@@ -7050,7 +7095,7 @@ Function OutputSite
 						Line 6 "Unable to determine UPD Roaming Mode"
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					Line 4 "Deployment method`t`t`t`t`t: " $FSLogixDeploymentSettingsDeploymentMethod
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -7231,11 +7276,11 @@ Function OutputSite
 				$columnHeaders = @("Inherit default settings",($Script:htmlsb),$RDSHost.InheritDefaultUserProfileSettings.ToString(),$htmlwhite)
 				$rowdata += @(,( "Technology",($Script:htmlsb),$RDSTechnology,$htmlwhite))
 
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					$rowdata += @(,( "Settings",($Script:htmlsb),"",$htmlwhite))
 					$rowdata += @(,( "     UPD State",($Script:htmlsb),$RDSUPDState,$htmlwhite))
@@ -7288,7 +7333,7 @@ Function OutputSite
 						$rowdata += @(,( "     Unable to determine UPD Roaming Mode",($Script:htmlsb),"",$htmlwhite))
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					$rowdata += @(,( "Deployment method",($Script:htmlsb),$FSLogixDeploymentSettingsDeploymentMethod,$htmlwhite))
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -7459,7 +7504,7 @@ Function OutputSite
 					$rowdata += @(,( "          Volume wait time",($Script:htmlsb),"$($FSLogixAS_VolumeWaitTimeMS)",$htmlwhite))
 				}
 
-				$msg = "User Profile"
+				$msg = "User profile"
 				$columnWidths = @("350","325")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -7469,11 +7514,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Desktop Access"
+				WriteWordLine 4 0 "Desktop access"
 			}
 			If($Text)
 			{
-				Line 3 "Desktop Access"
+				Line 3 "Desktop access"
 			}
 			If($HTML)
 			{
@@ -7642,7 +7687,7 @@ Function OutputSite
 					}
 				}
 
-				$msg = "Desktop Access"
+				$msg = "Desktop access"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -7652,11 +7697,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "RDP Printer"
+				WriteWordLine 4 0 "RDP printer"
 			}
 			If($Text)
 			{
-				Line 3 "RDP Printer"
+				Line 3 "RDP printer"
 			}
 			If($HTML)
 			{
@@ -7781,7 +7826,7 @@ Function OutputSite
 				$rowdata += @(,( "RDP Printer Name Format",($Script:htmlsb),$RDSPrinterNameFormat,$htmlwhite))
 				$rowdata += @(,( "Remove session number from printer name",($Script:htmlsb),$RDSRemoveSessionNumberFromPrinter,$htmlwhite))
 
-				$msg = "RDP Printer"
+				$msg = "RDP printer"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -8045,11 +8090,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Agent Settings"
+				WriteWordLine 4 0 "Agent settings"
 			}
 			If($Text)
 			{
-				Line 2 "Agent Settings"
+				Line 2 "Agent settings"
 			}
 			If($HTML)
 			{
@@ -8270,7 +8315,7 @@ Function OutputSite
 				$rowdata += @(,( "Enable applications monitoring",($Script:htmlsb),$RDSEnableAppMonitoring,$htmlwhite))
 				$rowdata += @(,( "Allow file transfer command (HTML5 and Chrome clients)",($Script:htmlsb),$RDSAllowFileTransfer,$htmlwhite))
 
-				$msg = "Agent Settings"
+				$msg = "Agent settings"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -8280,11 +8325,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "User Profile"
+				WriteWordLine 4 0 "User profile"
 			}
 			If($Text)
 			{
-				Line 2 "User Profile"
+				Line 2 "User profile"
 			}
 			If($HTML)
 			{
@@ -8642,7 +8687,7 @@ Function OutputSite
 					"DoNotChange"	{$RDSUPDState = "Do not change"; Break}
 					"Enabled"		{$RDSUPDState = "Enabled"; Break}
 					"Disabled"		{$RDSUPDState = "Disabled"; Break}
-					Default			{$RDSUPDState = "Unable to determine Current UPD State: $($RDSGroup.UPDMode)"; Break}
+					Default			{$RDSUPDState = "Unable to determine Current UPD State: $($RDSGroupDefaults.UPDMode)"; Break}
 				}
 				
 				Switch ($RDSGroupDefaults.Technology)
@@ -8650,7 +8695,7 @@ Function OutputSite
 					"DoNotManage"				{$RDSTechnology = "Do not manage by RAS"; Break}
 					"UPD"						{$RDSTechnology = "User profile disk"; Break}
 					"FSLogixProfileContainer"	{$RDSTechnology = "FSLogix"; Break}
-					Default						{$RDSTechnology = "Unable to determine Technology State: $($GroupDefaults.Technology)"; Break}
+					Default						{$RDSTechnology = "Unable to determine Technology State: $($RDSGroupDefaults.Technology)"; Break}
 				}
 						
 				$RDSUPDLocation = $RDSGroupDefaults.DiskPath
@@ -8919,11 +8964,11 @@ Function OutputSite
 				$ScriptInformation.Add(@{Data = "Inherit default settings"; Value = $RDSGroup.InheritDefaultUserProfileSettings.ToString(); }) > $Null
 				$ScriptInformation.Add(@{Data = "Technology"; Value = $RDSTechnology; }) > $Null
 
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					$ScriptInformation.Add(@{Data = "Settings"; Value = ""; }) > $Null
 					$ScriptInformation.Add(@{Data = "     UPD State"; Value = $RDSUPDState; }) > $Null
@@ -8977,7 +9022,7 @@ Function OutputSite
 						$ScriptInformation.Add(@{Data = "     Unable to determine UPD Roaming Mode"; Value = ""; }) > $Null
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					$ScriptInformation.Add(@{Data = "Deployment method"; Value = $FSLogixDeploymentSettingsDeploymentMethod; }) > $Null
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -9171,11 +9216,11 @@ Function OutputSite
 				Line 3 "Inherit default settings`t`t`t`t: " $RDSGroup.InheritDefaultUserProfileSettings.ToString()
 				Line 3 "Technology`t`t`t`t`t`t: " $RDSTechnology
 
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					Line 3 "Settings"
 					Line 4 "UPD State`t`t`t`t`t: " $RDSUPDState
@@ -9216,7 +9261,7 @@ Function OutputSite
 						Line 5 "Unable to determine UPD Roaming Mode"
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					Line 3 "Deployment method`t`t`t`t`t: " $FSLogixDeploymentSettingsDeploymentMethod
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -9397,11 +9442,11 @@ Function OutputSite
 				$columnHeaders = @("Inherit default settings",($Script:htmlsb),$RDSGroup.InheritDefaultUserProfileSettings.ToString(),$htmlwhite)
 				$rowdata += @(,( "Technology",($Script:htmlsb),$RDSTechnology,$htmlwhite))
 
-				If($RDSHost.Technology -eq "DoNotManage")
+				If($RDSTechnology -eq "Do not manage by RAS")
 				{
 					#do nothing
 				}
-				ElseIf($RDSHost.Technology -eq "UPD")
+				ElseIf($RDSTechnology -eq "User profile disk")
 				{
 					$rowdata += @(,( "Settings",($Script:htmlsb),"",$htmlwhite))
 					$rowdata += @(,( "     UPD State",($Script:htmlsb),$RDSUPDState,$htmlwhite))
@@ -9454,7 +9499,7 @@ Function OutputSite
 						$rowdata += @(,( "     Unable to determine UPD Roaming Mode",($Script:htmlsb),"",$htmlwhite))
 					}
 				}
-				ElseIf($RDSHost.Technology -eq "FSLogixProfileContainer")
+				ElseIf($RDSTechnology -eq "FSLogix")
 				{
 					$rowdata += @(,( "Deployment method",($Script:htmlsb),$FSLogixDeploymentSettingsDeploymentMethod,$htmlwhite))
 					If($FSLogixDeploymentSettings.InstallType -eq "Online")
@@ -9625,7 +9670,7 @@ Function OutputSite
 					$rowdata += @(,( "          Volume wait time",($Script:htmlsb),"$($FSLogixAS_VolumeWaitTimeMS)",$htmlwhite))
 				}
 
-				$msg = "User Profile"
+				$msg = "User profile"
 				$columnWidths = @("350","325")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -9635,11 +9680,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Desktop Access"
+				WriteWordLine 4 0 "Desktop access"
 			}
 			If($Text)
 			{
-				Line 2 "Desktop Access"
+				Line 2 "Desktop access"
 			}
 			If($HTML)
 			{
@@ -9769,7 +9814,7 @@ Function OutputSite
 					}
 				}
 
-				$msg = "Desktop Access"
+				$msg = "Desktop access"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -9779,11 +9824,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "RDP Printer"
+				WriteWordLine 4 0 "RDP printer"
 			}
 			If($Text)
 			{
-				Line 2 "RDP Printer"
+				Line 2 "RDP printer"
 			}
 			If($HTML)
 			{
@@ -9871,7 +9916,7 @@ Function OutputSite
 				$rowdata += @(,( "RDP Printer Name Format",($Script:htmlsb),$RDSPrinterNameFormat,$htmlwhite))
 				$rowdata += @(,( "Remove session number from printer name",($Script:htmlsb),$RDSRemoveSessionNumberFromPrinter,$htmlwhite))
 
-				$msg = "RDP Printer"
+				$msg = "RDP printer"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -10171,11 +10216,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Properties"
+				WriteWordLine 4 0 "General"
 			}
 			If($Text)
 			{
-				Line 2 "Properties"
+				Line 2 "General"
 			}
 			If($HTML)
 			{
@@ -10266,7 +10311,7 @@ Function OutputSite
 					}
 				}
 				
-				$msg = "Properties"
+				$msg = "General"
 				$columnWidths = @("200","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -10630,7 +10675,7 @@ Function OutputSite
 			{
 				If($MSWord -or $PDF)
 				{
-					WriteWordLine 3 0 "Providers $($VDIHost.Server)"
+					WriteWordLine 3 0 "Providers"
 				}
 				If($Text)
 				{
@@ -10638,7 +10683,7 @@ Function OutputSite
 				}
 				If($HTML)
 				{
-					WriteHTMLLine 3 0 "Providers $($VDIHost.Server)"
+					WriteHTMLLine 3 0 "Providers"
 				}
 
 				$VDIType = GetVDIType $VDIHost.Type
@@ -10650,6 +10695,7 @@ Function OutputSite
 					$ScriptInformation.Add(@{Data = "Type"; Value = $VDIType; }) > $Null
 					$ScriptInformation.Add(@{Data = "VDI Agent"; Value = $VDIHost.VDIAgent; }) > $Null
 					$ScriptInformation.Add(@{Data = "Status"; Value = $VDIHostStatus.AgentState.ToString(); }) > $Null
+					$ScriptInformation.Add(@{Data = "Direct address"; Value = $VDIHost.DirectAddress; }) > $Null
 					$ScriptInformation.Add(@{Data = "Description"; Value = $VDIHost.Description; }) > $Null
 					$ScriptInformation.Add(@{Data = "Log level"; Value = $VDIHostStatus.LogLevel; }) > $Null
 					$ScriptInformation.Add(@{Data = "Last modification by"; Value = $VDIHost.AdminLastMod; }) > $Null
@@ -10682,6 +10728,7 @@ Function OutputSite
 					Line 3 "Type`t`t`t: " $VDIType
 					Line 3 "VDI Agent`t`t: " $VDIHost.VDIAgent
 					Line 3 "Status`t`t`t: " $VDIHostStatus.AgentState.ToString()
+					Line 3 "Direct address`t`t: " $VDIHost.DirectAddress
 					Line 3 "Description`t`t: " $VDIHost.Description
 					Line 3 "Log level`t`t: " $VDIHostStatus.LogLevel
 					Line 3 "Last modification by`t: " $VDIHost.AdminLastMod
@@ -10698,6 +10745,7 @@ Function OutputSite
 					$rowdata += @(,( "Type",($Script:htmlsb),$VDIType,$htmlwhite))
 					$rowdata += @(,( "VDI Agent",($Script:htmlsb),$VDIHost.VDIAgent,$htmlwhite))
 					$rowdata += @(,( "Status",($Script:htmlsb),$VDIHostStatus.AgentState.ToString(),$htmlwhite))
+					$rowdata += @(,( "Direct address",($Script:htmlsb),$VDIHost.DirectAddress,$htmlwhite))
 					$rowdata += @(,( "Description",($Script:htmlsb),$VDIHost.Description,$htmlwhite))
 					$rowdata += @(,( "Log level",($Script:htmlsb),$VDIHostStatus.LogLevel,$htmlwhite))
 					$rowdata += @(,( "Last modification by",($Script:htmlsb), $VDIHost.AdminLastMod,$htmlwhite))
@@ -10713,15 +10761,15 @@ Function OutputSite
 				}
 			}
 			
-			#Properties
+			#General
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Properties"
+				WriteWordLine 4 0 "General"
 			}
 			If($Text)
 			{
-				Line 3 "Properties"
+				Line 3 "General"
 			}
 			If($HTML)
 			{
@@ -10810,7 +10858,7 @@ Function OutputSite
 					$rowdata += @(,("Agent address",($Script:htmlsb),$VDIHost.VDIAgent,$htmlwhite))
 				}
 
-				$msg = "Properties"
+				$msg = "General"
 				$columnWidths = @("200","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -10874,11 +10922,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Agent Settings"
+				WriteWordLine 4 0 "Agent settings"
 			}
 			If($Text)
 			{
-				Line 3 "Agent Settings"
+				Line 3 "Agent settings"
 			}
 			If($HTML)
 			{
@@ -10888,11 +10936,12 @@ Function OutputSite
 			If($MSWord -or $PDF)
 			{
 				$ScriptInformation = New-Object System.Collections.ArrayList
-				$ScriptInformation.Add(@{Data = "Publishing Session Timeout"; Value = $VDIHost.SessionTimeout.ToString(); }) > $Null
+				#$ScriptInformation.Add(@{Data = "Publishing Session Timeout"; Value = $VDIHost.SessionTimeout.ToString(); }) > $Null
 				$ScriptInformation.Add(@{Data = "Allow Client URL/Mail Redirection"; Value = $VDIHost.AllowURLAndMailRedirection.ToString(); }) > $Null
 				$ScriptInformation.Add(@{Data = "Support Shell URL namespace objects"; Value = $VDIHost.SupportShellURLNamespaceObjects.ToString(); }) > $Null
 				$ScriptInformation.Add(@{Data = "Preferred Publishing Agent"; Value = $VDIHostStatus.PreferredPA; }) > $Null
 				$ScriptInformation.Add(@{Data = "Allow file transfer command (HTML5 and Chrome clients)"; Value = $VDIHost.AllowFileTransfer.ToString(); }) > $Null
+				$ScriptInformation.Add(@{Data = "Enable drive redirection cache"; Value = $VDIHost.EnableDriveRedirectionCache.ToString(); }) > $Null
 
 				$Table = AddWordTable -Hashtable $ScriptInformation `
 				-Columns Data,Value `
@@ -10914,23 +10963,26 @@ Function OutputSite
 			}
 			If($Text)
 			{
-				Line 4 "Publishing Session Timeout`t`t`t`t: " $VDIHost.SessionTimeout.ToString()
+				#Line 4 "Publishing Session Timeout`t`t`t`t: " $VDIHost.SessionTimeout.ToString()
 				Line 4 "Allow Client URL/Mail Redirection`t`t`t: " $VDIHost.AllowURLAndMailRedirection.ToString()
 				Line 4 "Support Shell URL namespace objects`t`t`t: " $VDIHost.SupportShellURLNamespaceObjects.ToString()
 				Line 4 "Preferred Publishing Agent`t`t`t`t: " $VDIHostStatus.PreferredPA
 				Line 4 "Allow file transfer command (HTML5 and Chrome clients)`t: " $VDIHost.AllowFileTransfer.ToString()
+				Line 4 "Enable drive redirection cache`t`t`t: " $VDIHost.EnableDriveRedirectionCache.ToString()
 				Line 0 ""
 			}
 			If($HTML)
 			{
 				$rowdata = @()
-				$columnHeaders = @("Publishing Session Timeout",($Script:htmlsb),$VDIHost.SessionTimeout.ToString(),$htmlwhite)
-				$rowdata += @(,("Allow Client URL/Mail Redirection",($Script:htmlsb),$VDIHost.AllowURLAndMailRedirection.ToString(),$htmlwhite))
+				#$columnHeaders = @("Publishing Session Timeout",($Script:htmlsb),$VDIHost.SessionTimeout.ToString(),$htmlwhite)
+				$columnHeaders = @("Allow Client URL/Mail Redirection",($Script:htmlsb),$VDIHost.AllowURLAndMailRedirection.ToString(),$htmlwhite)
+				#$rowdata += @(,("Allow Client URL/Mail Redirection",($Script:htmlsb),$VDIHost.AllowURLAndMailRedirection.ToString(),$htmlwhite))
 				$rowdata += @(,("Support Shell URL namespace objects",($Script:htmlsb),$VDIHost.SupportShellURLNamespaceObjects.ToString(),$htmlwhite))
 				$rowdata += @(,("Preferred Publishing Agent",($Script:htmlsb),$VDIHostStatus.PreferredPA,$htmlwhite))
 				$rowdata += @(,("Allow file transfer command (HTML5 and Chrome clients)",($Script:htmlsb),$VDIHost.AllowFileTransfer.ToString(),$htmlwhite))
+				$rowdata += @(,("Enable drive redirection cache",($Script:htmlsb),$VDIHost.EnableDriveRedirectionCache.ToString(),$htmlwhite))
 
-				$msg = "Agent Settings"
+				$msg = "Agent settings"
 				$columnWidths = @("200","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -10940,11 +10992,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "RDP Printer"
+				WriteWordLine 4 0 "RDP printer"
 			}
 			If($Text)
 			{
-				Line 3 "RDP Printer"
+				Line 3 "RDP printer"
 			}
 			If($HTML)
 			{
@@ -10997,7 +11049,7 @@ Function OutputSite
 				$columnHeaders = @("RDP Printer Name Format",($Script:htmlsb),$VDIPrinterNameFormat,$htmlwhite)
 				$rowdata += @(,("Remove session number from printer name",($Script:htmlsb),$VDIRemoveSessionNumberFromPrinter,$htmlwhite))
 
-				$msg = "RDP Printer"
+				$msg = "RDP printer"
 				$columnWidths = @("200","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -11029,6 +11081,10 @@ Function OutputSite
 					$ScriptInformation = New-Object System.Collections.ArrayList
 					$ScriptInformation.Add(@{Data = "Pools"; Value = ""; }) > $Null
 					$ScriptInformation.Add(@{Data = "  Name"; Value = $VDIPool.Name; }) > $Null
+					$ScriptInformation.Add(@{Data = "  Last modification by"; Value = $VDIPool.AdminLastMod; }) > $Null
+					$ScriptInformation.Add(@{Data = "  Modified on"; Value = $VDIPool.TimeLastMod.ToString(); }) > $Null
+					$ScriptInformation.Add(@{Data = "  Created by"; Value = $VDIPool.AdminCreate; }) > $Null
+					$ScriptInformation.Add(@{Data = "  Created on"; Value = $VDIPool.TimeCreate.ToString(); }) > $Null
 					
 					ForEach($Item in $VDIPool.Members)
 					{
@@ -11107,6 +11163,10 @@ Function OutputSite
 				{
 					Line 3 "Pools"
 					Line 4 "Name`t`t: " $VDIPool.Name
+					Line 4 "Last modification by`t: " $VDIPool.AdminLastMod
+					Line 4 "Modified on`t`t: " $VDIPool.TimeLastMod.ToString()
+					Line 4 "Created by`t`t: " $VDIPool.AdminCreate
+					Line 4 "Created on`t`t: " $VDIPool.TimeCreate.ToString()
 					
 					ForEach($Item in $VDIPool.Members)
 					{
@@ -11170,6 +11230,10 @@ Function OutputSite
 					$rowdata = @()
 					$columnHeaders = @("Pools",($Script:htmlsb),"",$htmlwhite)
 					$rowdata += @(,("  Name",($Script:htmlsb),$VDIPool.Name,$htmlwhite))
+					$rowdata += @(,("  Last modification by",($Script:htmlsb), $VDIPool.AdminLastMod,$htmlwhite))
+					$rowdata += @(,("  Modified on",($Script:htmlsb), $VDIPool.TimeLastMod.ToString(),$htmlwhite))
+					$rowdata += @(,("  Created by",($Script:htmlsb), $VDIPool.AdminCreate,$htmlwhite))
+					$rowdata += @(,("  Created on",($Script:htmlsb), $VDIPool.TimeCreate.ToString(),$htmlwhite))
 					
 					ForEach($Item in $VDIPool.Members)
 					{
@@ -11230,24 +11294,24 @@ Function OutputSite
 		
 		#Templates
 		
+		If($MSWord -or $PDF)
+		{
+			WriteWordLine 3 0 "Templates"
+		}
+		If($Text)
+		{
+			Line 2 "Templates"
+		}
+		If($HTML)
+		{
+			WriteHTMLLine 3 0 "Templates"
+		}
+		
 		$VDITemplates = Get-RASVDITemplate -SiteId $Site.Id -EA 0 4>$Null
 		If($? -and $Null -ne $VDITemplates)
 		{
 			ForEach($VDITemplate in $VDITemplates)
 			{
-				If($MSWord -or $PDF)
-				{
-					WriteWordLine 3 0 "Templates $($VDITemplate.Name)"
-				}
-				If($Text)
-				{
-					Line 2 "Templates $($VDITemplate.Name)"
-				}
-				If($HTML)
-				{
-					WriteHTMLLine 3 0 "Templates $($VDITemplate.Name)"
-				}
-		
 				$VDIHost = Get-RASProvider -Id $VDITemplate.ProviderId -EA 0 4>$Null
 				
 				If($? -and $null -ne $VDIHost)
@@ -11274,10 +11338,10 @@ Function OutputSite
 				{
 					$ScriptInformation = New-Object System.Collections.ArrayList
 					$ScriptInformation.Add(@{Data = "Name"; Value = $VDITemplate.Name; }) > $Null
+					#$ScriptInformation.Add(@{Data = "Status"; Value = $ProviderStatus; }) > $Null
 					$ScriptInformation.Add(@{Data = "Type"; Value = $VDITemplate.TemplateType.ToString(); }) > $Null
 					$ScriptInformation.Add(@{Data = "Provider"; Value = $Provider; }) > $Null
 					$ScriptInformation.Add(@{Data = "Provider Type"; Value = $ProviderType; }) > $Null
-					$ScriptInformation.Add(@{Data = "Status"; Value = $ProviderStatus; }) > $Null
 					$ScriptInformation.Add(@{Data = "Last modification by"; Value = $VDITemplate.AdminLastMod; }) > $Null
 					$ScriptInformation.Add(@{Data = "Modified on"; Value = $VDITemplate.TimeLastMod.ToString(); }) > $Null
 					$ScriptInformation.Add(@{Data = "Created by"; Value = $VDITemplate.AdminCreate; }) > $Null
@@ -11305,10 +11369,10 @@ Function OutputSite
 				If($Text)
 				{
 					Line 3 "Name`t`t`t: " $VDITemplate.Name
+					#Line 3 "Status`t`t`t: " $ProviderStatus
 					Line 3 "Type`t`t`t: " $VDITemplate.TemplateType.ToString()
 					Line 3 "Provider`t`t: " $Provider
 					Line 3 "Provider Type`t`t: " $ProviderType
-					Line 3 "Status`t`t`t: " $ProviderStatus
 					Line 3 "Last modification by`t: " $VDITemplate.AdminLastMod
 					Line 3 "Modified on`t`t: " $VDITemplate.TimeLastMod.ToString()
 					Line 3 "Created by`t`t: " $VDITemplate.AdminCreate
@@ -11320,10 +11384,10 @@ Function OutputSite
 				{
 					$rowdata = @()
 					$columnHeaders = @("Name",($Script:htmlsb),$VDITemplate.Name,$htmlwhite)
+					#$rowdata += @(,( "Status",($Script:htmlsb),$ProviderStatus,$htmlwhite))
 					$rowdata += @(,( "Type",($Script:htmlsb),$VDITemplate.TemplateType.ToString(),$htmlwhite))
 					$rowdata += @(,( "Provider",($Script:htmlsb),$Provider,$htmlwhite))
 					$rowdata += @(,( "Provider type",($Script:htmlsb),$ProviderType,$htmlwhite))
-					$rowdata += @(,( "Status",($Script:htmlsb),$ProviderStatus,$htmlwhite))
 					$rowdata += @(,( "Last modification by",($Script:htmlsb), $VDITemplate.AdminLastMod,$htmlwhite))
 					$rowdata += @(,( "Modified on",($Script:htmlsb), $VDITemplate.TimeLastMod.ToString(),$htmlwhite))
 					$rowdata += @(,( "Created by",($Script:htmlsb), $VDITemplate.AdminCreate,$htmlwhite))
@@ -11340,11 +11404,11 @@ Function OutputSite
 				
 				If($MSWord -or $PDF)
 				{
-					WriteWordLine 4 0 "Properties"
+					WriteWordLine 4 0 "General"
 				}
 				If($Text)
 				{
-					Line 3 "Properties"
+					Line 3 "General"
 				}
 				If($HTML)
 				{
@@ -11440,7 +11504,7 @@ Function OutputSite
 				{
 					$ScriptInformation = New-Object System.Collections.ArrayList
 					$ScriptInformation.Add(@{Data = "Folder"; Value = $VDITemplate.FolderName; }) > $Null
-					$ScriptInformation.Add(@{Data = "Native Pool"; Value = $VDITemplate.NativePoolName; }) > $Null
+					$ScriptInformation.Add(@{Data = "Resource pool"; Value = $VDITemplate.NativePoolName; }) > $Null
 					$ScriptInformation.Add(@{Data = "Physical Host"; Value = $VDITemplate.PhysicalHostName; }) > $Null
 
 					$Table = AddWordTable -Hashtable $ScriptInformation `
@@ -11464,7 +11528,7 @@ Function OutputSite
 				If($Text)
 				{
 					Line 4 "Folder`t`t`t`t: " $VDITemplate.FolderName
-					Line 4 "Native Pool`t`t`t: " $VDITemplate.NativePoolName
+					Line 4 "Resource pool`t`t`t: " $VDITemplate.NativePoolName
 					Line 4 "Physical Host`t`t`t: " $VDITemplate.PhysicalHostName
 					Line 0 ""
 				}
@@ -11472,7 +11536,7 @@ Function OutputSite
 				{
 					$rowdata = @()
 					$columnHeaders = @("Folder",($Script:htmlsb),$VDITemplate.FolderName,$htmlwhite)
-					$rowdata += @(,("Native Pool",($Script:htmlsb),$VDITemplate.NativePoolName,$htmlwhite))
+					$rowdata += @(,("Resource pool",($Script:htmlsb),$VDITemplate.NativePoolName,$htmlwhite))
 					$rowdata += @(,("Physical Host",($Script:htmlsb),$VDITemplate.PhysicalHostName,$htmlwhite))
 
 					$msg = "Advanced"
@@ -11552,7 +11616,1139 @@ Function OutputSite
 					FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 					WriteHTMLLine 0 0 ""
 				}
+
+				#User Profile
+				#There is no way to retrieve the settings if "Inherit default settings" is selected.
+				#There is also no way to retrieve the Site Defaults, which are more than User profile settings
+				#I will leave this code in but commented out
+			
+				<#If($MSWord -or $PDF)
+				{
+					WriteWordLine 4 0 "User profile"
+				}
+				If($Text)
+				{
+					Line 3 "User profile"
+				}
+				If($HTML)
+				{
+					#Nothing
+				}
+
+				If($VDITemplate.InheritDefUserProfileSettings)
+				{
+					#do we inherit site defaults?
+					#yes we do, get the default settings for the Site
+					#use the Site default settings
+					
+					#Template technology settings do not include UPD, only FSLogix
+					#$TemplateDefaults = Get-RASRDSDefaultSettings -SiteId $Site.Id -EA 0 4>$Null
+					$TemplateDefaults = $Null
+					
+					If($? -and $Null -ne $TemplateDefaults)
+					{
+						Switch ($TemplateDefaults.Technology)
+						{
+							"DoNotManage"				{$TemplateTechnology = "Do not manage by RAS"; Break}
+							"FSLogixProfileContainer"	{$TemplateTechnology = "FSLogix"; Break}
+							Default						{$TemplateTechnology = "Unable to determine Technology State: $($TemplateDefaults.Technology)"; Break}
+						}
+						
+						$FSLogixSettings           = $TemplateDefaults.FSLogix.ProfileContainer
+						$FSLogixDeploymentSettings = Get-RASFSLogixSettings -EA 0 4>$Null | Where-Object{ $_.SiteId -eq $Site.Id}
+						
+						Switch($FSLogixDeploymentSettings.InstallType)
+						{
+							"Manually"		{$FSLogixDeploymentSettingsDeploymentMethod = "Install manually"; Break}
+							"Online"		{$FSLogixDeploymentSettingsDeploymentMethod = "Install online"; Break}
+							"NetworkDrive"	{$FSLogixDeploymentSettingsDeploymentMethod = "Install from a network share"; Break}
+							"UploadInstall"	{$FSLogixDeploymentSettingsDeploymentMethod = "Push from RAS Publishing Agent"; Break}
+							Default			{$FSLogixDeploymentSettingsDeploymentMethod = "Unable to determine FSLogix Deployment method: $($FSLogixDeploymentSettings.InstallType)"; Break}
+						}
+						
+						$FSLogixDeploymentSettingsInstallOnlineURL  = $FSLogixDeploymentSettings.InstallOnlineURL
+						$FSLogixDeploymentSettingsNetworkDrivePath  = $FSLogixDeploymentSettings.NetworkDrivePath
+						$FSLogixDeploymentSettingsInstallerFileName = $FSLogixDeploymentSettings.InstallerFileName
+						$FSLogixDeploymentSettingsReplicate         = $FSLogixDeploymentSettings.Replicate
+
+						Switch ($FSLogixSettings.LocationType)
+						{
+							"SMBLocation"	
+							{
+								$FSLogixLocationType = "SMB Location"
+								$FSLogixLocationOfProfileDisks = $FSLogixSettings.VHDLocations
+								Break
+							}
+							"CloudCache"	
+							{
+								$FSLogixLocationType = "Cloud Cache"
+								$FSLogixLocationOfProfileDisks = $FSLogixSettings.CCDLocations
+								Break
+							}
+							Default 		
+							{
+								$FSLogixLocationType = "Unable to determine FSLogix Location type: $($FSLogixSettings.LocationType)"
+								$FSLogixLocationOfProfileDisks = @()
+								Break
+							}
+						}
+						
+						Switch ($FSLogixSettings.ProfileDiskFormat)
+						{
+							"VHD"	{$FSLogixProfileDiskFormat = "VHD"; Break}
+							"VHDX"	{$FSLogixProfileDiskFormat = "VHDX"; Break}
+							Default	{$FSLogixProfileDiskFormat = "Unable to determine FSLogix Profile disk format: $($FSLogixSettings.ProfileDiskFormat)"; Break}
+						}
+						
+						Switch ($FSLogixSettings.AllocationType)
+						{
+							"Dynamic"	{$FSLogixAllocationType = "Dynamic"; Break}
+							"Full"		{$FSLogixAllocationType = "Full"; Break}
+							Default		{$FSLogixAllocationType = "Unable to determine FSLogix Allocation type: $($FSLogixSettings.AllocationType)"; Break}
+						}
+						
+						$FSLogixDefaultSize = $FSLogixSettings.DefaultSize.ToString()
+							
+						#FSLogix Additional settings
+						#Users and Groups tab
+						If($FSLogixSettings.UserInclusionList.Count -eq 0)
+						{
+							$FSLogixSettingsUserInclusionList = @("Everyone")
+						}
+						Else
+						{
+							$FSLogixSettingsUserInclusionList = $FSLogixSettings.UserInclusionList
+						}
+						$FSLogixSettingsUserExclusionList       = $FSLogixSettings.UserExclusionList
+							
+						#Folders tab
+						$FSLogixSettingsCustomizeProfileFolders = $FSLogixSettings.CustomizeProfileFolders
+						$FSLogixSettingsExcludeCommonFolders    = $FSLogixSettings | Select-Object -ExpandProperty ExcludeCommonFolders
+						$ExcludedCommonFolders                  = @()
+						$FSLogixSettingsFolderInclusionList     = $FSLogixSettings.FolderInclusionList
+						$FSLogixSettingsFolderExclusionList     = $FSLogixSettings.FolderExclusionList
+
+						If($FSLogixSettingsCustomizeProfileFolders)
+						{
+							#####################################################################################
+							#MANY thanks to Guy Leech for helping me figure out how to process and use this Enum#
+							#####################################################################################
+
+							#this is cumulative
+							#Contacts, Desktop, Documents, Links, MusicPodcasts, PicturesVideos, FoldersLowIntegProcesses
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Contacts)
+							{
+								$ExcludedCommonFolders += "Contacts"
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Desktop)
+							{
+								$ExcludedCommonFolders += "Desktop"
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Documents)
+							{
+								$ExcludedCommonFolders += "Documents"
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Links)
+							{
+								$ExcludedCommonFolders += "Links"
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::MusicPodcasts)
+							{
+								$ExcludedCommonFolders += 'Music & Podcasts'
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::PicturesVideos)
+							{
+								$ExcludedCommonFolders += 'Pictures & Videos'
+							}
+							If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::FoldersLowIntegProcesses)
+							{
+								$ExcludedCommonFolders += "Folders used by Low Integrity processes"
+							}
+						}
+							
+						#Advanced tab
+						$FSLogixAS = $FSLogixSettings.AdvancedSettings
+						
+						Switch($FSLogixAS.AccessNetworkAsComputerObject)
+						{
+							"Enable"	{$FSLogixAS_AccessNetworkAsComputerObject = "Enable"; Break}
+							"Disable"	{$FSLogixAS_AccessNetworkAsComputerObject = "Disable"; Break}
+							Default		{$FSLogixAS_AccessNetworkAsComputerObject = "Unknown: $($FSLogixAS.AccessNetworkAsComputerObject)"; Break}
+						}
+						
+						$FSLogixAS_AttachVHDSDDL = $FSLogixAS.AttachVHDSDDL
+						
+						Switch($FSLogixAS.DeleteLocalProfileWhenVHDShouldApply)
+						{
+							"Enable"	{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Enable"; Break}
+							"Disable"	{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Disable"; Break}
+							Default		{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Unknown: $($FSLogixAS.DeleteLocalProfileWhenVHDShouldApply)"; Break}
+						}
+
+						$FSLogixAS_DiffDiskParentFolderPath = $FSLogixAS.DiffDiskParentFolderPath  
+
+						Switch($FSLogixAS.FlipFlopProfileDirectoryName)
+						{
+							"Enable"	{$FSLogixAS_FlipFlopProfileDirectoryName = "Enable"; Break}
+							"Disable"	{$FSLogixAS_FlipFlopProfileDirectoryName = "Disable"; Break}
+							Default		{$FSLogixAS_FlipFlopProfileDirectoryName = "Unknown: $($FSLogixAS.FlipFlopProfileDirectoryName)"; Break}
+						}
+						
+						Switch($FSLogixAS.KeepLocalDir)
+						{
+							"Enable"	{$FSLogixAS_KeepLocalDir = "Enable"; Break}
+							"Disable"	{$FSLogixAS_KeepLocalDir = "Disable"; Break}
+							Default		{$FSLogixAS_KeepLocalDir = "Unknown: $($FSLogixAS.KeepLocalDir)"; Break}
+						}
+
+						$FSLogixAS_LockedRetryCount    = $FSLogixAS.LockedRetryCount                       
+						$FSLogixAS_LockedRetryInterval = $FSLogixAS.LockedRetryInterval     
+						
+						Switch($FSLogixAS.NoProfileContainingFolder)
+						{
+							"Enable"	{$FSLogixAS_NoProfileContainingFolder = "Enable"; Break}
+							"Disable"	{$FSLogixAS_NoProfileContainingFolder = "Disable"; Break}
+							Default		{$FSLogixAS_NoProfileContainingFolder = "Unknown: $($FSLogixAS.NoProfileContainingFolder)"; Break}
+						}
+
+						Switch($FSLogixAS.OutlookCachedMode)
+						{
+							"Enable"	{$FSLogixAS_OutlookCachedMode = "Enable"; Break}
+							"Disable"	{$FSLogixAS_OutlookCachedMode = "Disable"; Break}
+							Default		{$FSLogixAS_OutlookCachedMode = "Unknown: $($FSLogixAS.OutlookCachedMode)"; Break}
+						}
+
+						Switch($FSLogixAS.PreventLoginWithFailure)
+						{
+							"Enable"	{$FSLogixAS_PreventLoginWithFailure = "Enable"; Break}
+							"Disable"	{$FSLogixAS_PreventLoginWithFailure = "Disable"; Break}
+							Default		{$FSLogixAS_PreventLoginWithFailure = "Unknown: $($FSLogixAS.PreventLoginWithFailure)"; Break}
+						}
+
+						Switch($FSLogixAS.PreventLoginWithTempProfile)
+						{
+							"Enable"	{$FSLogixAS_PreventLoginWithTempProfile = "Enable"; Break}
+							"Disable"	{$FSLogixAS_PreventLoginWithTempProfile = "Disable"; Break}
+							Default		{$FSLogixAS_PreventLoginWithTempProfile = "Unknown: $($FSLogixAS.PreventLoginWithTempProfile)"; Break}
+						}
+
+						$FSLogixAS_ProfileDirSDDL = $FSLogixAS.ProfileDirSDDL
+
+						Switch($FSLogixAS.ProfileType)
+						{
+							"NormalProfile"	{$FSLogixAS_ProfileType = "Normal profile"; Break}
+							"OnlyRWProfile"	{$FSLogixAS_ProfileType = "Only RW profile"; Break}
+							"OnlyROProfile"	{$FSLogixAS_ProfileType = "Only RO profile"; Break}
+							"RWROProfile"	{$FSLogixAS_ProfileType = "RW/RO profile"; Break}
+							Default			{$FSLogixAS_ProfileType = "Unknown: $($FSLogixAS.ProfileType)"; Break}
+						}
+
+						$FSLogixAS_ReAttachIntervalSeconds = $FSLogixAS.ReAttachIntervalSeconds                
+						$FSLogixAS_ReAttachRetryCount      = $FSLogixAS.ReAttachRetryCount                     
+
+						Switch($FSLogixAS.RemoveOrphanedOSTFilesOnLogoff)
+						{
+							"Enable"	{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Enable"; Break}
+							"Disable"	{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Disable"; Break}
+							Default		{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Unknown: $($FSLogixAS.RemoveOrphanedOSTFilesOnLogoff)"; Break}
+						}
+
+						Switch($FSLogixAS.RoamSearch)
+						{
+							"Enable"	{$FSLogixAS_RoamSearch = "Enable"; Break}
+							"Disable"	{$FSLogixAS_RoamSearch = "Disable"; Break}
+							Default		{$FSLogixAS_RoamSearch = "Unknown: $($FSLogixAS.RoamSearch)"; Break}
+						}
+
+						Switch($FSLogixAS.SetTempToLocalPath)
+						{
+							"TakeNoAction"					{$FSLogixAS_SetTempToLocalPath = "Take no action"; Break}
+							"RedirectTempAndTmp"			{$FSLogixAS_SetTempToLocalPath = "Redirect TEMP and TMP"; Break}
+							"RedirectINetCache"				{$FSLogixAS_SetTempToLocalPath = "Redirect INetCache"; Break}
+							"RedirectTempTmpAndINetCache"	{$FSLogixAS_SetTempToLocalPath = "Redirect TEMP, TMP, and INetCache"; Break}
+							Default							{$FSLogixAS_SetTempToLocalPath = "Unknown: $($FSLogixAS.SetTempToLocalPath)"; Break}
+						}
+
+						$FSLogixAS_SIDDirNameMatch   = $FSLogixAS.SIDDirNameMatch                        
+						$FSLogixAS_SIDDirNamePattern = $FSLogixAS.SIDDirNamePattern                      
+						$FSLogixAS_SIDDirSDDL        = $FSLogixAS.SIDDirSDDL
+						$FSLogixAS_VHDNameMatch      = $FSLogixAS.VHDNameMatch                           
+						$FSLogixAS_VHDNamePattern    = $FSLogixAS.VHDNamePattern                         
+
+						Switch($FSLogixAS.VHDXSectorSize)
+						{
+							0		{$FSLogixAS_VHDXSectorSize = "System default"; Break}
+							512		{$FSLogixAS_VHDXSectorSize = "512"; Break}
+							4096	{$FSLogixAS_VHDXSectorSize = "4096"; Break}
+							Default	{$FSLogixAS_VHDXSectorSize = "Unknown: $($FSLogixAS.VHDXSectorSize)"; Break}
+						}
+
+						$FSLogixAS_VolumeWaitTimeMS = $FSLogixAS.VolumeWaitTimeMS                       					
+					}
+					Else
+					{
+						#unable to retrieve default, use built-in default values
+						$TemplateTechnology                             = "Do not manage by RAS"
+						$FSLogixDeploymentSettingsDeploymentMethod      = ""
+						$FSLogixDeploymentSettingsInstallOnlineURL      = ""
+						$FSLogixDeploymentSettingsNetworkDrivePath      = ""
+						$FSLogixDeploymentSettingsInstallerFileName     = ""
+						$FSLogixDeploymentSettingsReplicate             = $False
+						$FSLogixLocationType                            = ""
+						$FSLogixLocationOfProfileDisks                  = @()
+						$FSLogixProfileDiskFormat                       = ""
+						$FSLogixAllocationType                          = ""
+						$FSLogixDefaultSize                             = "0"
+						$FSLogixSettingsUserInclusionList               = @("Everyone")
+						$FSLogixSettingsUserExclusionList               = @()
+						$FSLogixSettingsCustomizeProfileFolders         = $False
+						$FSLogixSettingsExcludeCommonFolders            = ""
+						$ExcludedCommonFolders                          = @()
+						$FSLogixSettingsFolderInclusionList             = @()
+						$FSLogixSettingsFolderExclusionList             = @()
+						$FSLogixAS_AccessNetworkAsComputerObject        = "Disable"
+						$FSLogixAS_AttachVHDSDDL                        = ""
+						$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Disable"
+						$FSLogixAS_DiffDiskParentFolderPath             = "%TEMP"
+						$FSLogixAS_FlipFlopProfileDirectoryName         = "Disable"
+						$FSLogixAS_KeepLocalDir                         = "Disable"
+						$FSLogixAS_LockedRetryCount                     = 12
+						$FSLogixAS_LockedRetryInterval                  = 5
+						$FSLogixAS_NoProfileContainingFolder            = "Disable"
+						$FSLogixAS_OutlookCachedMode                    = "Disable"
+						$FSLogixAS_PreventLoginWithFailure              = "Disable"
+						$FSLogixAS_PreventLoginWithTempProfile          = "Disable"
+						$FSLogixAS_ProfileDirSDDL                       = ""
+						$FSLogixAS_ProfileType                          = "Normal profile"
+						$FSLogixAS_ReAttachIntervalSeconds              = 10
+						$FSLogixAS_ReAttachRetryCount                   = 60
+						$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff       = "Enable"
+						$FSLogixAS_RoamSearch                           = "Disable"
+						$FSLogixAS_SetTempToLocalPath                   = "Redirect TEMP, TMP, and INetCache"
+						$FSLogixAS_SIDDirNameMatch                      = "%sid%_%username%"
+						$FSLogixAS_SIDDirNamePattern                    = "%sid%_%username%"
+						$FSLogixAS_SIDDirSDDL                           = ""
+						$FSLogixAS_VHDNameMatch                         = "Profile*"
+						$FSLogixAS_VHDNamePattern                       = "Profile_%username%"
+						$FSLogixAS_VHDXSectorSize                       = "System default"
+						$FSLogixAS_VolumeWaitTimeMS                     = 20000
+					}
+				}
+				Else
+				{
+					#we don't inherit
+					#get the settings for the template
+
+					Switch ($VDITemplate.Technology)
+					{
+						"DoNotManage"				{$TemplateTechnology = "Do not manage by RAS"; Break}
+						"FSLogixProfileContainer"	{$TemplateTechnology = "FSLogix"; Break}
+						Default						{$TemplateTechnology = "Unable to determine Technology State: $($TemplateDefaults.Technology)"; Break}
+					}
+							
+					$FSLogixSettings           = $VDITemplate.FSLogix.ProfileContainer
+					$FSLogixDeploymentSettings = Get-RASFSLogixSettings -EA 0 4>$Null | Where-Object{ $_.SiteId -eq $Site.Id}
+					
+					Switch($FSLogixDeploymentSettings.InstallType)
+					{
+						"Manually"		{$FSLogixDeploymentSettingsDeploymentMethod = "Install manually"; Break}
+						"Online"		{$FSLogixDeploymentSettingsDeploymentMethod = "Install online"; Break}
+						"NetworkDrive"	{$FSLogixDeploymentSettingsDeploymentMethod = "Install from a network share"; Break}
+						"UploadInstall"	{$FSLogixDeploymentSettingsDeploymentMethod = "Push from RAS Publishing Agent"; Break}
+						Default			{$FSLogixDeploymentSettingsDeploymentMethod = "Unable to determine FSLogix Deployment method: $($FSLogixDeploymentSettings.InstallType)"; Break}
+					}
+					
+					$FSLogixDeploymentSettingsInstallOnlineURL  = $FSLogixDeploymentSettings.InstallOnlineURL
+					$FSLogixDeploymentSettingsNetworkDrivePath  = $FSLogixDeploymentSettings.NetworkDrivePath
+					$FSLogixDeploymentSettingsInstallerFileName = $FSLogixDeploymentSettings.InstallerFileName
+					$FSLogixDeploymentSettingsReplicate         = $FSLogixDeploymentSettings.Replicate
+					
+					Switch ($FSLogixSettings.LocationType)
+					{
+						"SMBLocation"	
+						{
+							$FSLogixLocationType = "SMB Location"
+							$FSLogixLocationOfProfileDisks = $FSLogixSettings.VHDLocations
+							Break
+						}
+						"CloudCache"	
+						{
+							$FSLogixLocationType = "Cloud Cache"
+							$FSLogixLocationOfProfileDisks = $FSLogixSettings.CCDLocations
+							Break
+						}
+						Default 		
+						{
+							$FSLogixLocationType = "Unable to determine FSLogix Location type: $($FSLogixSettings.LocationType)"
+							$FSLogixLocationOfProfileDisks = @()
+							Break
+						}
+					}
+					
+					Switch ($FSLogixSettings.ProfileDiskFormat)
+					{
+						"VHD"	{$FSLogixProfileDiskFormat = "VHD"; Break}
+						"VHDX"	{$FSLogixProfileDiskFormat = "VHDX"; Break}
+						Default	{$FSLogixProfileDiskFormat = "Unable to determine FSLogix Profile disk format: $($FSLogixSettings.ProfileDiskFormat)"; Break}
+					}
+					
+					Switch ($FSLogixSettings.AllocationType)
+					{
+						"Dynamic"	{$FSLogixAllocationType = "Dynamic"; Break}
+						"Full"		{$FSLogixAllocationType = "Full"; Break}
+						Default		{$FSLogixAllocationType = "Unable to determine FSLogix Allocation type: $($FSLogixSettings.AllocationType)"; Break}
+					}
+					
+					$FSLogixDefaultSize = $FSLogixSettings.DefaultSize.ToString()
+							
+					#FSLogix Additional settings
+					#Users and Groups tab
+					If($FSLogixSettings.UserInclusionList.Count -eq 0)
+					{
+						$FSLogixSettingsUserInclusionList = @("Everyone")
+					}
+					Else
+					{
+						$FSLogixSettingsUserInclusionList = $FSLogixSettings.UserInclusionList
+					}
+					$FSLogixSettingsUserExclusionList       = $FSLogixSettings.UserExclusionList
+							
+					#Folders tab
+					$FSLogixSettingsCustomizeProfileFolders = $FSLogixSettings.CustomizeProfileFolders
+					$FSLogixSettingsExcludeCommonFolders    = $FSLogixSettings | Select-Object -ExpandProperty ExcludeCommonFolders
+					$ExcludedCommonFolders                  = @()
+					$FSLogixSettingsFolderInclusionList     = $FSLogixSettings.FolderInclusionList
+					$FSLogixSettingsFolderExclusionList     = $FSLogixSettings.FolderExclusionList
+
+					If($FSLogixSettingsCustomizeProfileFolders)
+					{
+						#####################################################################################
+						#MANY thanks to Guy Leech for helping me figure out how to process and use this Enum#
+						#####################################################################################
+
+						#this is cumulative
+						#Contacts, Desktop, Documents, Links, MusicPodcasts, PicturesVideos, FoldersLowIntegProcesses
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Contacts)
+						{
+							$ExcludedCommonFolders += "Contacts"
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Desktop)
+						{
+							$ExcludedCommonFolders += "Desktop"
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Documents)
+						{
+							$ExcludedCommonFolders += "Documents"
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::Links)
+						{
+							$ExcludedCommonFolders += "Links"
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::MusicPodcasts)
+						{
+							$ExcludedCommonFolders += 'Music & Podcasts'
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::PicturesVideos)
+						{
+							$ExcludedCommonFolders += 'Pictures & Videos'
+						}
+						If($FSLogixSettingsExcludeCommonFolders -band [RASAdminEngine.Core.OutputModels.UserProfile.FSLogix.ExcludeCommonFolders]::FoldersLowIntegProcesses)
+						{
+							$ExcludedCommonFolders += "Folders used by Low Integrity processes"
+						}
+					}
+					
+					#Advanced tab
+					$FSLogixAS = $FSLogixSettings.AdvancedSettings
+					
+					Switch($FSLogixAS.AccessNetworkAsComputerObject)
+					{
+						"Enable"	{$FSLogixAS_AccessNetworkAsComputerObject = "Enable"; Break}
+						"Disable"	{$FSLogixAS_AccessNetworkAsComputerObject = "Disable"; Break}
+						Default		{$FSLogixAS_AccessNetworkAsComputerObject = "Unknown: $($FSLogixAS.AccessNetworkAsComputerObject)"; Break}
+					}
+					
+					$FSLogixAS_AttachVHDSDDL = $FSLogixAS.AttachVHDSDDL
+					
+					Switch($FSLogixAS.DeleteLocalProfileWhenVHDShouldApply)
+					{
+						"Enable"	{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Enable"; Break}
+						"Disable"	{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Disable"; Break}
+						Default		{$FSLogixAS_DeleteLocalProfileWhenVHDShouldApply = "Unknown: $($FSLogixAS.DeleteLocalProfileWhenVHDShouldApply)"; Break}
+					}
+
+					$FSLogixAS_DiffDiskParentFolderPath = $FSLogixAS.DiffDiskParentFolderPath  
+
+					Switch($FSLogixAS.FlipFlopProfileDirectoryName)
+					{
+						"Enable"	{$FSLogixAS_FlipFlopProfileDirectoryName = "Enable"; Break}
+						"Disable"	{$FSLogixAS_FlipFlopProfileDirectoryName = "Disable"; Break}
+						Default		{$FSLogixAS_FlipFlopProfileDirectoryName = "Unknown: $($FSLogixAS.FlipFlopProfileDirectoryName)"; Break}
+					}
+					
+					Switch($FSLogixAS.KeepLocalDir)
+					{
+						"Enable"	{$FSLogixAS_KeepLocalDir = "Enable"; Break}
+						"Disable"	{$FSLogixAS_KeepLocalDir = "Disable"; Break}
+						Default		{$FSLogixAS_KeepLocalDir = "Unknown: $($FSLogixAS.KeepLocalDir)"; Break}
+					}
+
+					$FSLogixAS_LockedRetryCount    = $FSLogixAS.LockedRetryCount                       
+					$FSLogixAS_LockedRetryInterval = $FSLogixAS.LockedRetryInterval     
+					
+					Switch($FSLogixAS.NoProfileContainingFolder)
+					{
+						"Enable"	{$FSLogixAS_NoProfileContainingFolder = "Enable"; Break}
+						"Disable"	{$FSLogixAS_NoProfileContainingFolder = "Disable"; Break}
+						Default		{$FSLogixAS_NoProfileContainingFolder = "Unknown: $($FSLogixAS.NoProfileContainingFolder)"; Break}
+					}
+
+					Switch($FSLogixAS.OutlookCachedMode)
+					{
+						"Enable"	{$FSLogixAS_OutlookCachedMode = "Enable"; Break}
+						"Disable"	{$FSLogixAS_OutlookCachedMode = "Disable"; Break}
+						Default		{$FSLogixAS_OutlookCachedMode = "Unknown: $($FSLogixAS.OutlookCachedMode)"; Break}
+					}
+
+					Switch($FSLogixAS.PreventLoginWithFailure)
+					{
+						"Enable"	{$FSLogixAS_PreventLoginWithFailure = "Enable"; Break}
+						"Disable"	{$FSLogixAS_PreventLoginWithFailure = "Disable"; Break}
+						Default		{$FSLogixAS_PreventLoginWithFailure = "Unknown: $($FSLogixAS.PreventLoginWithFailure)"; Break}
+					}
+
+					Switch($FSLogixAS.PreventLoginWithTempProfile)
+					{
+						"Enable"	{$FSLogixAS_PreventLoginWithTempProfile = "Enable"; Break}
+						"Disable"	{$FSLogixAS_PreventLoginWithTempProfile = "Disable"; Break}
+						Default		{$FSLogixAS_PreventLoginWithTempProfile = "Unknown: $($FSLogixAS.PreventLoginWithTempProfile)"; Break}
+					}
+
+					$FSLogixAS_ProfileDirSDDL = $FSLogixAS.ProfileDirSDDL
+
+					Switch($FSLogixAS.ProfileType)
+					{
+						"NormalProfile"	{$FSLogixAS_ProfileType = "Normal profile"; Break}
+						"OnlyRWProfile"	{$FSLogixAS_ProfileType = "Only RW profile"; Break}
+						"OnlyROProfile"	{$FSLogixAS_ProfileType = "Only RO profile"; Break}
+						"RWROProfile"	{$FSLogixAS_ProfileType = "RW/RO profile"; Break}
+						Default		{$FSLogixAS_ProfileType = "Unknown: $($FSLogixAS.ProfileType)"; Break}
+					}
+
+					$FSLogixAS_ReAttachIntervalSeconds = $FSLogixAS.ReAttachIntervalSeconds                
+					$FSLogixAS_ReAttachRetryCount      = $FSLogixAS.ReAttachRetryCount                     
+
+					Switch($FSLogixAS.RemoveOrphanedOSTFilesOnLogoff)
+					{
+						"Enable"	{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Enable"; Break}
+						"Disable"	{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Disable"; Break}
+						Default		{$FSLogixAS_RemoveOrphanedOSTFilesOnLogoff = "Unknown: $($FSLogixAS.RemoveOrphanedOSTFilesOnLogoff)"; Break}
+					}
+
+					Switch($FSLogixAS.RoamSearch)
+					{
+						"Enable"	{$FSLogixAS_RoamSearch = "Enable"; Break}
+						"Disable"	{$FSLogixAS_RoamSearch = "Disable"; Break}
+						Default		{$FSLogixAS_RoamSearch = "Unknown: $($FSLogixAS.RoamSearch)"; Break}
+					}
+
+					Switch($FSLogixAS.SetTempToLocalPath)
+					{
+						"TakeNoAction"					{$FSLogixAS_SetTempToLocalPath = "Take no action"; Break}
+						"RedirectTempAndTmp"			{$FSLogixAS_SetTempToLocalPath = "Redirect TEMP and TMP"; Break}
+						"RedirectINetCache"				{$FSLogixAS_SetTempToLocalPath = "Redirect INetCache"; Break}
+						"RedirectTempTmpAndINetCache"	{$FSLogixAS_SetTempToLocalPath = "Redirect TEMP, TMP, and INetCache"; Break}
+						Default							{$FSLogixAS_SetTempToLocalPath = "Unknown: $($FSLogixAS.SetTempToLocalPath)"; Break}
+					}
+
+					$FSLogixAS_SIDDirNameMatch   = $FSLogixAS.SIDDirNameMatch                        
+					$FSLogixAS_SIDDirNamePattern = $FSLogixAS.SIDDirNamePattern                      
+					$FSLogixAS_SIDDirSDDL        = $FSLogixAS.SIDDirSDDL
+					$FSLogixAS_VHDNameMatch      = $FSLogixAS.VHDNameMatch                           
+					$FSLogixAS_VHDNamePattern    = $FSLogixAS.VHDNamePattern                         
+
+					Switch($FSLogixAS.VHDXSectorSize)
+					{
+						0		{$FSLogixAS_VHDXSectorSize = "System default"; Break}
+						512		{$FSLogixAS_VHDXSectorSize = "512"; Break}
+						4096	{$FSLogixAS_VHDXSectorSize = "4096"; Break}
+						Default	{$FSLogixAS_VHDXSectorSize = "Unknown: $($FSLogixAS.VHDXSectorSize)"; Break}
+					}
+
+					$FSLogixAS_VolumeWaitTimeMS = $FSLogixAS.VolumeWaitTimeMS                       					
+				}
 				
+				If($MSWord -or $PDF)
+				{
+					$ScriptInformation = New-Object System.Collections.ArrayList
+					$ScriptInformation.Add(@{Data = "Inherit default settings"; Value = $VDITemplate.InheritDefUserProfileSettings.ToString(); }) > $Null
+					$ScriptInformation.Add(@{Data = "Technology"; Value = $TemplateTechnology; }) > $Null
+
+					If($TemplateTechnology -eq "Do not manage by RAS")
+					{
+						#do nothing
+					}
+					ElseIf($TemplateTechnology -eq "FSLogix")
+					{
+						$ScriptInformation.Add(@{Data = "Deployment method"; Value = $FSLogixDeploymentSettingsDeploymentMethod; }) > $Null
+						If($FSLogixDeploymentSettings.InstallType -eq "Online")
+						{
+							$ScriptInformation.Add(@{Data = "URL"; Value = $FSLogixDeploymentSettingsInstallOnlineURL; }) > $Null
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "NetworkDrive")
+						{
+							$ScriptInformation.Add(@{Data = ""; Value = $FSLogixDeploymentSettingsNetworkDrivePath; }) > $Null
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "UploadInstall")
+						{
+							$ScriptInformation.Add(@{Data = ""; Value = $FSLogixDeploymentSettingsInstallerFileName; }) > $Null
+						}
+						$ScriptInformation.Add(@{Data = "Settings are replicated to all Sites"; Value = $FSLogixDeploymentSettingsReplicate.ToString(); }) > $Null
+						$ScriptInformation.Add(@{Data = "Settings"; Value = ""; }) > $Null
+						$ScriptInformation.Add(@{Data = "     Location type"; Value = $FSLogixLocationType; }) > $Null
+						
+						$cnt = -1
+						ForEach($item in $FSLogixLocationOfProfileDisks)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$ScriptInformation.Add(@{Data = "     Location of profile disks"; Value = $item; }) > $Null
+							}
+							Else
+							{
+								$ScriptInformation.Add(@{Data = ""; Value = $item; }) > $Null
+							}
+						}
+						$ScriptInformation.Add(@{Data = "     Profile disk format"; Value = $FSLogixProfileDiskFormat; }) > $Null
+						$ScriptInformation.Add(@{Data = "     Allocation type"; Value = $FSLogixAllocationType; }) > $Null
+						$ScriptInformation.Add(@{Data = "     Default size"; Value = "$FSLogixDefaultSize GB"; }) > $Null
+						$ScriptInformation.Add(@{Data = "Additional settings"; Value = ""; }) > $Null
+						$ScriptInformation.Add(@{Data = "     Users and Groups"; Value = ""; }) > $Null
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsUserInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$ScriptInformation.Add(@{Data = "          User Inclusion List"; Value = "$($item.Account)  Type: $($item.Type)"; }) > $Null
+							}
+							Else
+							{
+								$ScriptInformation.Add(@{Data = ""; Value = "$($item.Account)  Type: $($item.Type)"; }) > $Null
+							}
+						}
+
+						If($FSLogixSettingsUserExclusionList.Count -eq 0)
+						{
+							$ScriptInformation.Add(@{Data = "          User Exclusion List"; Value = ""; }) > $Null
+						}
+						Else
+						{
+							$cnt = -1
+							ForEach($item in $FSLogixSettingsUserExclusionList)
+							{
+								$cnt++
+								
+								If($cnt -eq 0)
+								{
+									$ScriptInformation.Add(@{Data = "          User Exclusion List"; Value = "$($item.Account)  Type: $($item.Type)"; }) > $Null
+								}
+								Else
+								{
+									$ScriptInformation.Add(@{Data = ""; Value = "$($item.Account)  Type: $($item.Type)"; }) > $Null
+								}
+							}
+						}
+						$ScriptInformation.Add(@{Data = "     Folders"; Value = ""; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Customize profile folders"; Value = $FSLogixSettingsCustomizeProfileFolders.ToString(); }) > $Null
+						If($FSLogixSettingsCustomizeProfileFolders)
+						{
+							If($ExcludedCommonFolders.Count -gt 0)
+							{
+								$cnt = -1
+								ForEach($item in $ExcludedCommonFolders)
+								{
+									$cnt++
+									
+									If($cnt -eq 0)
+									{
+										$ScriptInformation.Add(@{Data = "          Exclude Common Folders"; Value = $item; }) > $Null
+									}
+									Else
+									{
+										$ScriptInformation.Add(@{Data = ""; Value = $item; }) > $Null
+									}
+								}
+							}
+							Else
+							{
+								$ScriptInformation.Add(@{Data = "          Exclude Common Folders"; Value = "None"; }) > $Null
+							}
+						}
+						$ScriptInformation.Add(@{Data = "          Folder Inclusion List"; Value = ""; }) > $Null
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$ScriptInformation.Add(@{Data = "               Folder"; Value = "$item"; }) > $Null
+							}
+							Else
+							{
+								$ScriptInformation.Add(@{Data = ""; Value = "$item"; }) > $Null
+							}
+						}
+
+						$ScriptInformation.Add(@{Data = "          Folder Exclusion List"; Value = ""; }) > $Null
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderExclusionList)
+						{
+							$cnt++
+							
+							Switch($item.ExcludeFolderCopy)
+							{
+								"None"					{$CopyBase = "No "; $CopyBack = "No "; Break}
+								"CopyBack"				{$CopyBase = "No "; $CopyBack = "Yes"; Break}
+								"CopyBase"				{$CopyBase = "Yes"; $CopyBack = "No "; Break}
+								"CopyBase, CopyBack"	{$CopyBase = "Yes"; $CopyBack = "Yes"; Break}
+								Default					{$CopyBase = "Unknown"; $CopyBack = "Unknown"; Break}
+							}
+							
+							If($cnt -eq 0)
+							{
+								$ScriptInformation.Add(@{Data = "               Folder"; Value = "$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack"; }) > $Null
+							}
+							Else
+							{
+								$ScriptInformation.Add(@{Data = ""; Value = "$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack"; }) > $Null
+							}
+						}
+						
+						$ScriptInformation.Add(@{Data = "     Advanced"; Value = ""; }) > $Null
+						$ScriptInformation.Add(@{Data = "          FSLogix Setting:"; Value = "Value:"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Access network as computer object"; Value = "$($FSLogixAS_AccessNetworkAsComputerObject)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Custom SDDL for profile directory"; Value = "$($FSLogixAS_ProfileDirSDDL)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Delay between locked VHD(X) retries"; Value = "$($FSLogixAS_LockedRetryInterval)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Delete local profile when loading from VHD"; Value = "$($FSLogixAS_DeleteLocalProfileWhenVHDShouldApply)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Diff disk parent folder path"; Value = "$($FSLogixAS_DiffDiskParentFolderPath)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Do not create a folder for new profiles"; Value = "$($FSLogixAS_NoProfileContainingFolder)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Enable Cached mode for Outlook"; Value = "$($FSLogixAS_OutlookCachedMode)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Keep local profiles"; Value = "$($FSLogixAS_KeepLocalDir)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Naming pattern for new VHD(X) files"; Value = "$($FSLogixAS_VHDNamePattern)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Number of locked VHD(X) retries"; Value = "$($FSLogixAS_LockedRetryCount)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Prevent logons with failures"; Value = "$($FSLogixAS_PreventLoginWithFailure)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Prevent logons with temp profiles"; Value = "$($FSLogixAS_PreventLoginWithTempProfile)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Profile folder naming pattern"; Value = "$($FSLogixAS_SIDDirNameMatch)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Profile type"; Value = "$($FSLogixAS_ProfileType)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Profile VHD(X) file matching pattern"; Value = "$($FSLogixAS_VHDNameMatch)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Re-attach interval"; Value = "$($FSLogixAS_ReAttachIntervalSeconds)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Re-attach retry limit"; Value = "$($FSLogixAS_ReAttachRetryCount)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Remove duplicate OST files on logoff"; Value = "$($FSLogixAS_RemoveOrphanedOSTFilesOnLogoff)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          SDDL used when attaching the VHD"; Value = "$($FSLogixAS_AttachVHDSDDL)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Search roaming feature mode"; Value = "$($FSLogixAS_RoamSearch)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Swap SID and username in profile directory names"; Value = "$($FSLogixAS_FlipFlopProfileDirectoryName)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Temporary folders redirection mode"; Value = "$($FSLogixAS_SetTempToLocalPath)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Use SDDL on creation of SID containing folder"; Value = "$($FSLogixAS_SIDDirSDDL)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          User-to-Profile matching pattern"; Value = "$($FSLogixAS_SIDDirNamePattern)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          VHDX sector size"; Value = "$($FSLogixAS_VHDXSectorSize)"; }) > $Null
+						$ScriptInformation.Add(@{Data = "          Volume wait time"; Value = "$($FSLogixAS_VolumeWaitTimeMS)"; }) > $Null
+					}
+
+					$Table = AddWordTable -Hashtable $ScriptInformation `
+					-Columns Data,Value `
+					-List `
+					-Format $wdTableGrid `
+					-AutoFit $wdAutoFitFixed;
+
+					SetWordCellFormat -Collection $Table -Size 10 -BackgroundColor $wdColorWhite
+					SetWordCellFormat -Collection $Table.Columns.Item(1).Cells -Bold -BackgroundColor $wdColorGray15;
+
+					$Table.Columns.Item(1).Width = 250;
+					$Table.Columns.Item(2).Width = 250;
+
+					$Table.Rows.SetLeftIndent($Indent0TabStops,$wdAdjustProportional)
+
+					FindWordDocumentEnd
+					$Table = $Null
+					WriteWordLine 0 0 ""
+				}
+				If($Text)
+				{
+					Line 3 "Inherit default settings`t`t`t`t: " $VDITemplate.InheritDefUserProfileSettings.ToString()
+					Line 3 "Technology`t`t`t`t`t`t: " $TemplateTechnology
+
+					If($TemplateTechnology -eq "Do not manage by RAS")
+					{
+						#do nothing
+					}
+					ElseIf($TemplateTechnology -eq "FSLogix")
+					{
+						Line 3 "Deployment method`t`t`t`t`t: " $FSLogixDeploymentSettingsDeploymentMethod
+						If($FSLogixDeploymentSettings.InstallType -eq "Online")
+						{
+							Line 3 "URL`t`t`t`t`t`t`t: " $FSLogixDeploymentSettingsInstallOnlineURL
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "NetworkDrive")
+						{
+							Line 10 ": " $FSLogixDeploymentSettingsNetworkDrivePath
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "UploadInstall")
+						{
+							Line 10 ": " $FSLogixDeploymentSettingsInstallerFileName
+						}
+						Line 3 "Settings are replicated to all Sites`t`t`t: " $FSLogixDeploymentSettingsReplicate.ToString()
+						Line 3 "Settings"
+						Line 4 "Location type`t`t`t`t`t: " $FSLogixLocationType
+						
+						$cnt = -1
+						ForEach($item in $FSLogixLocationOfProfileDisks)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								Line 4 "Location of profile disks`t`t`t: " $item
+							}
+							Else
+							{
+								Line 10 "  " $item
+							}
+						}
+						Line 4 "Profile disk format`t`t`t`t: " $FSLogixProfileDiskFormat
+						Line 4 "Allocation type`t`t`t`t`t: " $FSLogixAllocationType
+						Line 4 "Default size`t`t`t`t`t: " "$FSLogixDefaultSize GB"
+						Line 3 "Additional settings"
+						Line 4 "Users and Groups"
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsUserInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								Line 5 "User Inclusion List`t`t`t: " "$($item.Account)  Type: $($item.Type)"
+							}
+							Else
+							{
+								Line 10 "  " "$($item.Account)  Type: $($item.Type)"
+							}
+						}
+
+						If($FSLogixSettingsUserExclusionList.Count -eq 0)
+						{
+							Line 5 "User Exclusion List`t`t`t: "
+						}
+						Else
+						{
+							$cnt = -1
+							ForEach($item in $FSLogixSettingsUserExclusionList)
+							{
+								$cnt++
+								
+								If($cnt -eq 0)
+								{
+									Line 5 "User Exclusion List`t`t`t: " "$($item.Account)  Type: $($item.Type)"
+								}
+								Else
+								{
+									Line 10 "  " "$($item.Account)  Type: $($item.Type)"
+								}
+							}
+						}
+						Line 4 "Folders"
+						Line 5 "Customize profile folders`t`t: " $FSLogixSettingsCustomizeProfileFolders.ToString()
+						If($FSLogixSettingsCustomizeProfileFolders)
+						{
+							If($ExcludedCommonFolders.Count -gt 0)
+							{
+								$cnt = -1
+								ForEach($item in $ExcludedCommonFolders)
+								{
+									$cnt++
+									
+									If($cnt -eq 0)
+									{
+										Line 5 "Exclude Common Folders`t`t`t: " $item
+									}
+									Else
+									{
+										Line 10 "  " $item
+									}
+								}
+							}
+							Else
+							{
+								Line 5 "Exclude Common Folders`t`t`t: None"
+							}
+						}
+						Line 5 "Folder Inclusion List"
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								Line 6 "Folder`t`t`t`t: " $item
+							}
+							Else
+							{
+								Line 10 "  " $item
+							}
+						}
+
+						Line 5 "Folder Exclusion List"
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderExclusionList)
+						{
+							$cnt++
+							
+							Switch($item.ExcludeFolderCopy)
+							{
+								"None"					{$CopyBase = "No "; $CopyBack = "No "; Break}
+								"CopyBack"				{$CopyBase = "No "; $CopyBack = "Yes"; Break}
+								"CopyBase"				{$CopyBase = "Yes"; $CopyBack = "No "; Break}
+								"CopyBase, CopyBack"	{$CopyBase = "Yes"; $CopyBack = "Yes"; Break}
+								Default					{$CopyBase = "Unknown"; $CopyBack = "Unknown"; Break}
+							}
+							
+							If($cnt -eq 0)
+							{
+								Line 6 "Folder`t`t`t`t: " "$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack"
+							}
+							Else
+							{
+								Line 10 "  " "$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack"
+							}
+						}
+						
+						Line 4 "Advanced"
+						Line 5 "FSLogix Setting                                      Value"
+						Line 5 "======================================================================================"
+						#      "Swap SID and username in profile directory names     Redirect TEMP, TMP, and INetCache"
+						Line 6 "Access network as computer object                    $($FSLogixAS_AccessNetworkAsComputerObject)"
+						Line 6 "Custom SDDL for profile directory                    $($FSLogixAS_ProfileDirSDDL)"
+						Line 6 "Delay between locked VHD(X) retries                  $($FSLogixAS_LockedRetryInterval)"
+						Line 6 "Delete local profile when loading from VHD           $($FSLogixAS_DeleteLocalProfileWhenVHDShouldApply)"
+						Line 6 "Diff disk parent folder path                         $($FSLogixAS_DiffDiskParentFolderPath)"
+						Line 6 "Do not create a folder for new profiles              $($FSLogixAS_NoProfileContainingFolder)"
+						Line 6 "Enable Cached mode for Outlook                       $($FSLogixAS_OutlookCachedMode)"
+						Line 6 "Keep local profiles                                  $($FSLogixAS_KeepLocalDir)"
+						Line 6 "Naming pattern for new VHD(X) files                  $($FSLogixAS_VHDNamePattern)"
+						Line 6 "Number of locked VHD(X) retries                      $($FSLogixAS_LockedRetryCount)"
+						Line 6 "Prevent logons with failures                         $($FSLogixAS_PreventLoginWithFailure)"
+						Line 6 "Prevent logons with temp profiles                    $($FSLogixAS_PreventLoginWithTempProfile)"
+						Line 6 "Profile folder naming pattern                        $($FSLogixAS_SIDDirNameMatch)"
+						Line 6 "Profile type                                         $($FSLogixAS_ProfileType)"
+						Line 6 "Profile VHD(X) file matching pattern                 $($FSLogixAS_VHDNameMatch)"
+						Line 6 "Re-attach interval                                   $($FSLogixAS_ReAttachIntervalSeconds)"
+						Line 6 "Re-attach retry limit                                $($FSLogixAS_ReAttachRetryCount)"
+						Line 6 "Remove duplicate OST files on logoff                 $($FSLogixAS_RemoveOrphanedOSTFilesOnLogoff)"
+						Line 6 "SDDL used when attaching the VHD                     $($FSLogixAS_AttachVHDSDDL)"
+						Line 6 "Search roaming feature mode                          $($FSLogixAS_RoamSearch)"
+						Line 6 "Swap SID and username in profile directory names     $($FSLogixAS_FlipFlopProfileDirectoryName)"
+						Line 6 "Temporary folders redirection mode                   $($FSLogixAS_SetTempToLocalPath)"
+						Line 6 "Use SDDL on creation of SID containing folder        $($FSLogixAS_SIDDirSDDL)"
+						Line 6 "User-to-Profile matching pattern                     $($FSLogixAS_SIDDirNamePattern)"
+						Line 6 "VHDX sector size                                     $($FSLogixAS_VHDXSectorSize)"
+						Line 6 "Volume wait time                                     $($FSLogixAS_VolumeWaitTimeMS)"
+					}
+
+					Line 0 ""
+				}
+				If($HTML)
+				{
+					$rowdata = @()
+					$columnHeaders = @("Inherit default settings",($Script:htmlsb),$VDITemplate.InheritDefUserProfileSettings.ToString(),$htmlwhite)
+					$rowdata += @(,( "Technology",($Script:htmlsb),$TemplateTechnology,$htmlwhite))
+
+					If($TemplateTechnology -eq "Do not manage by RAS")
+					{
+						#do nothing
+					}
+					ElseIf($TemplateTechnology -eq "FSLogix")
+					{
+						$rowdata += @(,( "Deployment method",($Script:htmlsb),$FSLogixDeploymentSettingsDeploymentMethod,$htmlwhite))
+						If($FSLogixDeploymentSettings.InstallType -eq "Online")
+						{
+							$rowdata += @(,( "URL",($Script:htmlsb),$FSLogixDeploymentSettingsInstallOnlineURL,$htmlwhite))
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "NetworkDrive")
+						{
+							$rowdata += @(,( "",($Script:htmlsb),$FSLogixDeploymentSettingsNetworkDrivePath,$htmlwhite))
+						}
+						ElseIf($FSLogixDeploymentSettings.InstallType -eq "UploadInstall")
+						{
+							$rowdata += @(,( "",($Script:htmlsb),$FSLogixDeploymentSettingsInstallerFileName,$htmlwhite))
+						}
+						$rowdata += @(,( "Settings are replicated to all Sites",($Script:htmlsb),$FSLogixDeploymentSettingsReplicate.ToString(),$htmlwhite))
+						$rowdata += @(,( "Settings",($Script:htmlsb),"",$htmlwhite))
+						$rowdata += @(,( "     Location type",($Script:htmlsb),$FSLogixLocationType,$htmlwhite))
+						
+						$cnt = -1
+						ForEach($item in $FSLogixLocationOfProfileDisks)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$rowdata += @(,( "     Location of profile disks",($Script:htmlsb),$item,$htmlwhite))
+							}
+							Else
+							{
+								$rowdata += @(,( "",($Script:htmlsb),$item,$htmlwhite))
+							}
+						}
+						$rowdata += @(,( "     Profile disk format",($Script:htmlsb),$FSLogixProfileDiskFormat,$htmlwhite))
+						$rowdata += @(,( "     Allocation type",($Script:htmlsb),$FSLogixAllocationType,$htmlwhite))
+						$rowdata += @(,( "     Default size",($Script:htmlsb),"$FSLogixDefaultSize GB",$htmlwhite))
+						$rowdata += @(,( "Additional settings",($Script:htmlsb),"",$htmlwhite))
+						$rowdata += @(,( "     Users and Groups",($Script:htmlsb),"",$htmlwhite))
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsUserInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$rowdata += @(,( "          User Inclusion List",($Script:htmlsb),"$($item.Account)  Type: $($item.Type)",$htmlwhite))
+							}
+							Else
+							{
+								$rowdata += @(,( "",($Script:htmlsb),"$($item.Account)  Type: $($item.Type)",$htmlwhite))
+							}
+						}
+
+						If($FSLogixSettingsUserExclusionList.Count -eq 0)
+						{
+							$rowdata += @(,( "          User Exclusion List",($Script:htmlsb),"",$htmlwhite))
+						}
+						Else
+						{
+							$cnt = -1
+							ForEach($item in $FSLogixSettingsUserExclusionList)
+							{
+								$cnt++
+								
+								If($cnt -eq 0)
+								{
+									$rowdata += @(,( "          User Exclusion List",($Script:htmlsb),"$($item.Account)  Type: $($item.Type)",$htmlwhite))
+								}
+								Else
+								{
+									$rowdata += @(,( "",($Script:htmlsb),"$($item.Account)  Type: $($item.Type)",$htmlwhite))
+								}
+							}
+						}
+						$rowdata += @(,( "     Folders",($Script:htmlsb),"",$htmlwhite))
+						$rowdata += @(,( "          Customize profile folders",($Script:htmlsb),$FSLogixSettingsCustomizeProfileFolders.ToString(),$htmlwhite))
+						If($FSLogixSettingsCustomizeProfileFolders)
+						{
+							If($ExcludedCommonFolders.Count -gt 0)
+							{
+								$cnt = -1
+								ForEach($item in $ExcludedCommonFolders)
+								{
+									$cnt++
+									
+									If($cnt -eq 0)
+									{
+										$rowdata += @(,( "          Exclude Common Folders",($Script:htmlsb),$item,$htmlwhite))
+									}
+									Else
+									{
+										$rowdata += @(,( "",($Script:htmlsb),$item,$htmlwhite))
+									}
+								}
+							}
+							Else
+							{
+								$rowdata += @(,( "          Exclude Common Folders",($Script:htmlsb),"None",$htmlwhite))
+							}
+						}
+						$rowdata += @(,( "          Folder Inclusion List",($Script:htmlsb),"",$htmlwhite))
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderInclusionList)
+						{
+							$cnt++
+							
+							If($cnt -eq 0)
+							{
+								$rowdata += @(,( "               Folder",($Script:htmlsb),"$item",$htmlwhite))
+							}
+							Else
+							{
+								$rowdata += @(,( "",($Script:htmlsb),"$item",$htmlwhite))
+							}
+						}
+
+						$rowdata += @(,( "          Folder Exclusion List",($Script:htmlsb),"",$htmlwhite))
+						$cnt = -1
+						ForEach($item in $FSLogixSettingsFolderExclusionList)
+						{
+							$cnt++
+							
+							Switch($item.ExcludeFolderCopy)
+							{
+								"None"					{$CopyBase = "No "; $CopyBack = "No "; Break}
+								"CopyBack"				{$CopyBase = "No "; $CopyBack = "Yes"; Break}
+								"CopyBase"				{$CopyBase = "Yes"; $CopyBack = "No "; Break}
+								"CopyBase, CopyBack"	{$CopyBase = "Yes"; $CopyBack = "Yes"; Break}
+								Default					{$CopyBase = "Unknown"; $CopyBack = "Unknown"; Break}
+							}
+							
+							If($cnt -eq 0)
+							{
+								$rowdata += @(,( "               Folder",($Script:htmlsb),"$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack",$htmlwhite))
+							}
+							Else
+							{
+								$rowdata += @(,( "",($Script:htmlsb),"$($item.Folder) Copy base: $CopyBase Copy back: $CopyBack",$htmlwhite))
+							}
+						}
+
+						$rowdata += @(,( "     Advanced",($Script:htmlsb),"",$htmlwhite))
+						$rowdata += @(,( "          FSLogix Setting:",($Script:htmlsb),"Value:",$htmlwhite))
+						$rowdata += @(,( "          Access network as computer object",($Script:htmlsb),"$($FSLogixAS_AccessNetworkAsComputerObject)",$htmlwhite))
+						$rowdata += @(,( "          Custom SDDL for profile directory",($Script:htmlsb),"$($FSLogixAS_ProfileDirSDDL)",$htmlwhite))
+						$rowdata += @(,( "          Delay between locked VHD(X) retries",($Script:htmlsb),"$($FSLogixAS_LockedRetryInterval)",$htmlwhite))
+						$rowdata += @(,( "          Delete local profile when loading from VHD",($Script:htmlsb),"$($FSLogixAS_DeleteLocalProfileWhenVHDShouldApply)",$htmlwhite))
+						$rowdata += @(,( "          Diff disk parent folder path",($Script:htmlsb),"$($FSLogixAS_DiffDiskParentFolderPath)",$htmlwhite))
+						$rowdata += @(,( "          Do not create a folder for new profiles",($Script:htmlsb),"$($FSLogixAS_NoProfileContainingFolder)",$htmlwhite))
+						$rowdata += @(,( "          Enable Cached mode for Outlook",($Script:htmlsb),"$($FSLogixAS_OutlookCachedMode)",$htmlwhite))
+						$rowdata += @(,( "          Keep local profiles",($Script:htmlsb),"$($FSLogixAS_KeepLocalDir)",$htmlwhite))
+						$rowdata += @(,( "          Naming pattern for new VHD(X) files",($Script:htmlsb),"$($FSLogixAS_VHDNamePattern)",$htmlwhite))
+						$rowdata += @(,( "          Number of locked VHD(X) retries",($Script:htmlsb),"$($FSLogixAS_LockedRetryCount)",$htmlwhite))
+						$rowdata += @(,( "          Prevent logons with failures",($Script:htmlsb),"$($FSLogixAS_PreventLoginWithFailure)",$htmlwhite))
+						$rowdata += @(,( "          Prevent logons with temp profiles",($Script:htmlsb),"$($FSLogixAS_PreventLoginWithTempProfile)",$htmlwhite))
+						$rowdata += @(,( "          Profile folder naming pattern",($Script:htmlsb),"$($FSLogixAS_SIDDirNameMatch)",$htmlwhite))
+						$rowdata += @(,( "          Profile type",($Script:htmlsb),"$($FSLogixAS_ProfileType)",$htmlwhite))
+						$rowdata += @(,( "          Profile VHD(X) file matching pattern",($Script:htmlsb),"$($FSLogixAS_VHDNameMatch)",$htmlwhite))
+						$rowdata += @(,( "          Re-attach interval",($Script:htmlsb),"$($FSLogixAS_ReAttachIntervalSeconds)",$htmlwhite))
+						$rowdata += @(,( "          Re-attach retry limit",($Script:htmlsb),"$($FSLogixAS_ReAttachRetryCount)",$htmlwhite))
+						$rowdata += @(,( "          Remove duplicate OST files on logoff",($Script:htmlsb),"$($FSLogixAS_RemoveOrphanedOSTFilesOnLogoff)",$htmlwhite))
+						$rowdata += @(,( "          SDDL used when attaching the VHD",($Script:htmlsb),"$($FSLogixAS_AttachVHDSDDL)",$htmlwhite))
+						$rowdata += @(,( "          Search roaming feature mode",($Script:htmlsb),"$($FSLogixAS_RoamSearch)",$htmlwhite))
+						$rowdata += @(,( "          Swap SID and username in profile directory names",($Script:htmlsb),"$($FSLogixAS_FlipFlopProfileDirectoryName)",$htmlwhite))
+						$rowdata += @(,( "          Temporary folders redirection mode",($Script:htmlsb),"$($FSLogixAS_SetTempToLocalPath)",$htmlwhite))
+						$rowdata += @(,( "          Use SDDL on creation of SID containing folder",($Script:htmlsb),"$($FSLogixAS_SIDDirSDDL)",$htmlwhite))
+						$rowdata += @(,( "          User-to-Profile matching pattern",($Script:htmlsb),"$($FSLogixAS_SIDDirNamePattern)",$htmlwhite))
+						$rowdata += @(,( "          VHDX sector size",($Script:htmlsb),"$($FSLogixAS_VHDXSectorSize)",$htmlwhite))
+						$rowdata += @(,( "          Volume wait time",($Script:htmlsb),"$($FSLogixAS_VolumeWaitTimeMS)",$htmlwhite))
+					}
+
+					$msg = "User profile"
+					$columnWidths = @("350","325")
+					FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
+					WriteHTMLLine 0 0 ""
+				}
+				#>
+
 				#License Keys
 				
 				If($MSWord -or $PDF)
@@ -11695,6 +12891,8 @@ Function OutputSite
 		#Desktops
 		#can't find this
 	}
+	
+	#Remote PCs are not in PoSH
 	
 	$GWs = Get-RASGW -Siteid $Site.Id -EA 0 4> $Null
 	
@@ -12009,11 +13207,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Properties"
+				WriteWordLine 4 0 "General"
 			}
 			If($Text)
 			{
-				Line 2 "Properties"
+				Line 2 "General"
 			}
 			If($HTML)
 			{
@@ -12197,7 +13395,7 @@ Function OutputSite
 					$rowdata += @(,( "     Remove system buffers for",($Script:htmlsb),$GWOptimizeV6,$htmlwhite))
 				}
 
-				$msg = "Properties"
+				$msg = "General"
 				$columnWidths = @("300","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -13634,11 +14832,11 @@ Function OutputSite
 			
 			If($MSWord -or $PDF)
 			{
-				WriteWordLine 4 0 "Properties"
+				WriteWordLine 4 0 "General"
 			}
 			If($Text)
 			{
-				Line 2 "Properties"
+				Line 2 "General"
 			}
 			If($HTML)
 			{
@@ -13705,7 +14903,7 @@ Function OutputSite
 				$rowdata += @(,("Common name",($Script:htmlsb),$Cert.CommonName,$htmlwhite))
 				$rowdata += @(,("Expiration date",($Script:htmlsb),$Cert.ExpirationDate,$htmlwhite))
 
-				$msg = "Properties"
+				$msg = "General"
 				$columnWidths = @("200","275")
 				FormatHTMLTable $msg "auto" -rowArray $rowdata -columnArray $columnHeaders -fixedWidth $columnWidths
 				WriteHTMLLine 0 0 ""
@@ -28082,17 +29280,17 @@ Function OutputRASSettings
 	If($MSWord -or $PDF)
 	{
 		WriteWordLine 2 0 "Settings"
-		WriteWordLine 3 0 "Customer Experience Program"
+		WriteWordLine 3 0 "Customer experience program"
 	}
 	If($Text)
 	{
 		Line 1 "Settings"
-		Line 2 "Customer Experience Program"
+		Line 2 "Customer experience program"
 	}
 	If($HTML)
 	{
 		WriteHTMLLine 2 0 "Settings"
-		WriteHTMLLine 3 0 "Customer Experience Program"
+		WriteHTMLLine 3 0 "Customer experience program"
 	}
 	
 	If($MSWord -or $PDF)
@@ -28136,15 +29334,15 @@ Function OutputRASSettings
 
 	If($MSWord -or $PDF)
 	{
-		WriteWordLine 3 0 "HTTP Proxy settings"
+		WriteWordLine 3 0 "HTTP proxy settings"
 	}
 	If($Text)
 	{
-		Line 2 "HTTP Proxy settings"
+		Line 2 "HTTP proxy settings"
 	}
 	If($HTML)
 	{
-		WriteHTMLLine 3 0 "HTTP Proxy settings"
+		WriteHTMLLine 3 0 "HTTP proxy settings"
 	}
 	
 	If($MSWord -or $PDF)
@@ -28864,16 +30062,16 @@ Function OutputRASLicense
 	If($MSWord -or $PDF)
 	{
 		$Script:Selection.InsertNewPage()
-		WriteWordLine 1 0 "License Details"
+		WriteWordLine 1 0 "License details"
 		$ScriptInformation = New-Object System.Collections.ArrayList
 	}
 	If($Text)
 	{
-		Line 0 "License Details"
+		Line 0 "License details"
 	}
 	If($HTML)
 	{
-		WriteHTMLLine 1 0 "License Details"
+		WriteHTMLLine 1 0 "License details"
 		$rowdata = @()
 	}
 
