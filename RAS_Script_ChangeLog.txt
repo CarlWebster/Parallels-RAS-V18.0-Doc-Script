@@ -1,0 +1,73 @@
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+#Created on February 9, 2018
+
+#Version 1.0 released to the community on 5-August-2020
+#
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+#Created on February 9, 2018
+
+#Version 1.0 released to the community on 5-August-2020
+#
+#Version 2.00 20-Apr-2021
+#	Added 59 RDS Agent States
+#	Added a message to the error message for the missing RAS module
+#		Added a link to the V2 ReadMe file
+#	Added a parameter, RASSite, allowing the report to contain data for the specified Site
+#	Added additional Notification handlers types
+#	Added FSLogix to Farm/Site/Settings/Features
+#	Added Function GetFarmSites
+#	Added the missing License section for published RDSH applications to Text and HTML output
+#	Added to Universal Printing/Printer drivers, "Settings are replicated to all Sites"
+#	Added UPD and FSLogix to the User Profile tab for both RD Session Hosts and RD Session Hosts/Groups
+#	Added VDI Pool Member type of "ALLGUESTSONPROVIDER"
+#	Added WVD Apps and Desktops to Publishing
+#	Changed $DesktopSize to use the new values of the DesktopSize property
+#		Removed the property UseAvailableArea as it no longer exists
+#	Changed all RAS cmdlet names to use the new naming scheme Get-RAS*
+#	Changed all Write-Verbose statements from Get-Date to Get-Date -Format G as requested by Guy Leech
+#	Changed Get-RASVDIHost to the new Get-RASProvider
+#	Changed Get-RASVDIHostStatus to the new Get-RASProviderStatus
+#	Changed PoSH module from PSAdmin to RASAdmin
+#	Changed some Write-Warnings to Write-Host as they are not warnings
+#		Reformat most of the Write-Host statements to make the console output look better
+#	Changed the font size of Word/PDF tables from 11 to 10 to prevent most word wrapping to multiple lines
+#	Changed the RDS User Profile Technology to one line instead of two
+#	Changed the variable $MasterPublishingAgent to $PrimaryPublishingAgent
+#		Changed the matching column headings from Master Publishing Agent to Primary Publishing Agent
+#	Changed TWAIN and WIA state from "Unable to retrieve ___ Scanning information" to $False if unable to retrieve data or retrieved no data
+#	Fixed several alignment issues in the text output
+#	Fixed several formatting issues with the HTML and Word/PDF output
+#	Fixed several invalid $Null comparisons
+#	For RD Session Hosts, Agent settings, add the option Enable drive redirection cache
+#	For replicating settings, standardized on the wording "Settings are replicated to all Sites" followed by True or False
+#	In the Administration section, add the following:
+#		Accounts, Receive system notifications
+#		Settings, Miscellaneous, Reset idle RAS Console session after
+#	In the Connection section, add the following:
+#		Allowed devices, headings for Secure Access and Device Access
+#		Allowed devices, Allow only clients with the latest security patches
+#		Allowed devices, Device Access, Mode text label
+#	In the Filters section, reformatted the output to make it more readable (at least to me)
+#	In the Load Balancing section added CPU Optimization
+#	Moved Notification from Administration to Site Settings
+#	Removed all Turbo.net content
+#	Removed Function ProcessSites
+#	Removed MaxGuests from Provider/Agent Settings
+#	Removed property EnableCPULB from Load Balancing section
+#	Removed UPD settings from RD Session Hosts properties and Groups properties
+#	Reorder Parameters in an order recommended by Guy Leech
+#	Reworked how the script processed a Farm with multiple Sites
+#		For most of the Get-RAS* cmdlets, where needed, added the -Site parameter
+#	Updated Function SetWordCellFormat to the latest version
+#	Updated the Allowed authentication types to the new text in the console and handled multiple selections
+#	Updated the help text
+#	Updated the ReadMe file
+#	When retrieving data for Gateways, set variables to values specifying if the Gateway data could not be retrieved or found no Gateway data
+#	When using the output from Get-RASVDITemplate, change VDIHostId to ProviderId
+#	With the addition of the "Last modification by", "Modified on", "Created by", and "Created on" 
+#		properties to the PowerShell cmdlets, add those four properties to the relevant report sections
+#
